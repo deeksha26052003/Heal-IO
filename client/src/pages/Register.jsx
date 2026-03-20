@@ -8,17 +8,18 @@ import './Register.css';
 export default function Register() {
   const { register } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '', gender: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
+    if (!form.gender) return setError('Please select your biological sex');
     if (form.password !== form.confirm) return setError('Passwords do not match');
     setLoading(true);
     try {
-      await register(form.name, form.email, form.password);
+      await register(form.name, form.email, form.password, form.gender);
       navigate('/login');
     } catch (err) {
       setError(err.message);
@@ -49,6 +50,22 @@ export default function Register() {
           <div>
             <label className="lbl" htmlFor="reg-email">Email</label>
             <input id="reg-email" className="inp" type="email" placeholder="you@example.com" value={form.email} onChange={set('email')} required />
+          </div>
+          <div>
+            <label className="lbl">Biological Sex</label>
+            <div className="gender-row">
+              {['female', 'male'].map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  className={`gender-btn${form.gender === g ? ' on' : ''}`}
+                  onClick={() => setForm((f) => ({ ...f, gender: g }))}
+                >
+                  {g === 'female' ? 'Female' : 'Male'}
+                </button>
+              ))}
+            </div>
+            <p className="gender-note">Used only to personalise cycle tracking features</p>
           </div>
           <div>
             <label className="lbl" htmlFor="reg-password">Password</label>

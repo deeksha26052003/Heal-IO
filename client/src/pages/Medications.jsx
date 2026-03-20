@@ -2,12 +2,29 @@ import { useEffect, useState } from 'react';
 import Bar from '../components/Bar';
 import './Medications.css';
 
-const today = new Date().toISOString().split('T')[0];
 const FREQUENCIES = ['Daily', 'Twice daily', 'Three times daily', 'Weekly', 'As needed'];
+
+// Use local date to avoid UTC-offset mismatch with getDay()
+function localDateStr(d = new Date()) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+const today = localDateStr();
+
+// Build the Sun–Sat dates for the current week using local time
+function getWeekDates() {
+  const now = new Date();
+  const dow = now.getDay(); // 0=Sun … 6=Sat
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(now);
+    d.setDate(now.getDate() - dow + i);
+    return localDateStr(d);
+  });
+}
 
 export default function Medications() {
   const [meds, setMeds] = useState([]);
-  const [adherence, setAdherence] = useState({});
+  const [adherence, setAdherence] = useState({});  // today: { medId: taken }
+  const [weekLogs, setWeekLogs] = useState([]);    // adherence_logs for Sun–Sat
   const [show, setShow] = useState(false);
   const [form, setForm] = useState({ name: '', dosage: '', frequency: 'Daily', reminderTime: '', notes: '' });
   const [toast, setToast] = useState('');
@@ -20,24 +37,39 @@ export default function Medications() {
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
   useEffect(() => {
-    loadMeds();
-    loadAdherence();
+    loadAll();
   }, []);
+
+  async function loadAll() {
+    const weekDates = getWeekDates();
+    const weekFrom = weekDates[0];
+    const weekTo   = weekDates[6];
+
+    const [medsRes, todayRes, weekRes] = await Promise.all([
+      fetch('/api/medications', { credentials: 'include' }),
+      fetch(`/api/medications/adherence?from=${today}&to=${today}`, { credentials: 'include' }),
+      fetch(`/api/medications/adherence?from=${weekFrom}&to=${weekTo}`, { credentials: 'include' }),
+    ]);
+
+    const medsData  = await medsRes.json();
+    const todayData = await todayRes.json();
+    const weekData  = await weekRes.json();
+
+    if (Array.isArray(medsData)) setMeds(medsData);
+
+    if (Array.isArray(todayData)) {
+      const map = {};
+      todayData.forEach((a) => { map[a.medId] = a.taken; });
+      setAdherence(map);
+    }
+
+    if (Array.isArray(weekData)) setWeekLogs(weekData);
+  }
 
   async function loadMeds() {
     const r = await fetch('/api/medications', { credentials: 'include' });
     const d = await r.json();
     if (Array.isArray(d)) setMeds(d);
-  }
-
-  async function loadAdherence() {
-    const r = await fetch(`/api/medications/adherence?from=${today}&to=${today}`, { credentials: 'include' });
-    const d = await r.json();
-    if (Array.isArray(d)) {
-      const map = {};
-      d.forEach((a) => { map[a.medId] = a.taken; });
-      setAdherence(map);
-    }
   }
 
   async function saveMed() {
@@ -69,6 +101,11 @@ export default function Medications() {
       body: JSON.stringify({ medId, date: today, taken }),
     });
     setAdherence((p) => ({ ...p, [medId]: taken }));
+    // Refresh week logs so the chart updates immediately
+    const weekDates = getWeekDates();
+    const r = await fetch(`/api/medications/adherence?from=${weekDates[0]}&to=${weekDates[6]}`, { credentials: 'include' });
+    const d = await r.json();
+    if (Array.isArray(d)) setWeekLogs(d);
     showToast(taken ? 'Marked as taken ✓' : 'Unmarked');
   }
 
@@ -76,7 +113,9 @@ export default function Medications() {
   const inactive = meds.filter((m) => !m.active);
   const takenCount = active.filter((m) => adherence[m._id?.toString()]).length;
   const adherePct = active.length ? Math.round((takenCount / active.length) * 100) : 0;
-  const weekBars = [85, 100, 50, 100, 100, 67, adherePct];
+
+  const weekDates = getWeekDates();
+  const todayDow = new Date().getDay(); // 0=Sun…6=Sat
 
   return (
     <div>
@@ -169,17 +208,59 @@ export default function Medications() {
             </div>
           </div>
 
-          <div className="card">
-            <div className="sec-lbl">Weekly adherence</div>
-            <div style={{ display: 'flex', gap: 5, alignItems: 'flex-end', height: 56 }}>
-              {weekBars.map((val, i) => (
-                <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-                  <div style={{ width: '100%', height: `${(val / 100) * 42}px`, background: val >= 80 ? '#0a6e5c' : val >= 50 ? '#d97706' : '#dc2626', opacity: 0.8, transition: 'height .5s ease' }} />
-                  <div style={{ fontSize: 9.5, color: '#6a9a8a' }}>{'SMTWTFS'[i]}</div>
+          {active.length > 0 && (
+            <div className="card">
+              <div className="sec-lbl">This week — per medication</div>
+              {/* Day headers */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr repeat(7, 20px)', gap: '4px 6px', alignItems: 'center', marginBottom: 8 }}>
+                <div />
+                {weekDates.map((_, i) => (
+                  <div key={i} style={{ fontSize: 9, textAlign: 'center', fontWeight: i === todayDow ? 700 : 400, color: i === todayDow ? '#0a6e5c' : '#6a9a8a' }}>
+                    {'SMTWTFS'[i]}
+                  </div>
+                ))}
+              </div>
+              {/* Per-med rows */}
+              {active.map((m) => (
+                <div key={m._id} style={{ display: 'grid', gridTemplateColumns: '1fr repeat(7, 20px)', gap: '4px 6px', alignItems: 'center', marginBottom: 7 }}>
+                  <div style={{ fontSize: 11, color: '#2d4a3e', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.name}</div>
+                  {weekDates.map((date, i) => {
+                    const isFuture = i > todayDow;
+                    const log = weekLogs.find((l) => l.date === date && String(l.medId) === String(m._id));
+                    const wasTaken = log?.taken;
+                    return (
+                      <div
+                        key={i}
+                        title={isFuture ? '' : wasTaken ? 'Taken' : 'Missed'}
+                        style={{
+                          width: 16, height: 16,
+                          background: isFuture
+                            ? 'rgba(10,110,92,0.06)'
+                            : wasTaken
+                              ? '#0a6e5c'
+                              : i <= todayDow ? 'rgba(220,38,38,0.2)' : 'transparent',
+                          border: isFuture ? 'none' : wasTaken ? 'none' : i <= todayDow ? '1px solid rgba(220,38,38,0.3)' : 'none',
+                          justifySelf: 'center',
+                        }}
+                      />
+                    );
+                  })}
                 </div>
               ))}
+              {/* Legend */}
+              <div style={{ display: 'flex', gap: 12, marginTop: 10, paddingTop: 8, borderTop: '1px solid rgba(10,110,92,0.08)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: '#6a9a8a' }}>
+                  <div style={{ width: 10, height: 10, background: '#0a6e5c' }} /> Taken
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: '#6a9a8a' }}>
+                  <div style={{ width: 10, height: 10, background: 'rgba(220,38,38,0.2)', border: '1px solid rgba(220,38,38,0.3)' }} /> Missed
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: '#6a9a8a' }}>
+                  <div style={{ width: 10, height: 10, background: 'rgba(10,110,92,0.06)' }} /> Upcoming
+                </div>
+              </div>
             </div>
-          </div>
+          )}
 
           {inactive.length > 0 && (
             <div className="card">

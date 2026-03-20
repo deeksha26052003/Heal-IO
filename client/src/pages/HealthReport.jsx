@@ -3,11 +3,12 @@ import Logo from '../components/Logo';
 import Bar from '../components/Bar';
 import './HealthReport.css';
 
-const today = new Date().toISOString().split('T')[0];
+const _d0 = new Date();
+const today = `${_d0.getFullYear()}-${String(_d0.getMonth() + 1).padStart(2, '0')}-${String(_d0.getDate()).padStart(2, '0')}`;
 const thirtyAgo = (() => {
   const d = new Date();
   d.setDate(d.getDate() - 30);
-  return d.toISOString().split('T')[0];
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 })();
 
 function avg(arr, key) {

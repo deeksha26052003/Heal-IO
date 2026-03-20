@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 import SliderField from '../components/SliderField';
 import './DailyLog.css';
 
-const today = new Date().toISOString().split('T')[0];
+const d0 = new Date();
+const today = `${d0.getFullYear()}-${String(d0.getMonth() + 1).padStart(2, '0')}-${String(d0.getDate()).padStart(2, '0')}`;
 const todayLabel = new Date().toLocaleDateString('en-US', {
-  weekday: 'long',
-  month: 'long',
-  day: 'numeric',
+  weekday: 'long', month: 'long', day: 'numeric',
 });
 
 const SYMPTOMS = [
@@ -15,12 +15,17 @@ const SYMPTOMS = [
 ];
 const FLOW_OPTIONS = ['None', 'Light', 'Medium', 'Heavy', 'Spotting', 'N/A'];
 
+const EMPTY = {
+  mood: 5, energy: 5, sleep: 7, pain: 3, cramp: 3,
+  symptoms: [], meals: [], flow: 'None', notes: '',
+};
+
 export default function DailyLog() {
+  const { user } = useAuth();
+  const isFemale = user?.gender === 'female';
+
   const [date, setDate] = useState(today);
-  const [form, setForm] = useState({
-    mood: 7, energy: 6, sleep: 7, pain: 3, cramp: 4,
-    symptoms: [], meals: [], flow: 'None', notes: '',
-  });
+  const [form, setForm] = useState(EMPTY);
   const [mealInput, setMealInput] = useState('');
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
@@ -34,18 +39,18 @@ export default function DailyLog() {
       .then((data) => {
         if (data) {
           setForm({
-            mood: data.mood ?? 7,
-            energy: data.energy ?? 6,
-            sleep: data.sleep ?? 7,
-            pain: data.pain ?? 3,
-            cramp: data.cramp ?? 4,
+            mood:     data.mood     ?? EMPTY.mood,
+            energy:   data.energy   ?? EMPTY.energy,
+            sleep:    data.sleep    ?? EMPTY.sleep,
+            pain:     data.pain     ?? EMPTY.pain,
+            cramp:    data.cramp    ?? EMPTY.cramp,
             symptoms: data.symptoms ?? [],
             meals: Array.isArray(data.meals) ? data.meals : (data.meals ? [data.meals] : []),
-            flow: data.flow ?? 'None',
+            flow:  data.flow  ?? 'None',
             notes: data.notes ?? '',
           });
         } else {
-          setForm({ mood: 7, energy: 6, sleep: 7, pain: 3, cramp: 4, symptoms: [], meals: [], flow: 'None', notes: '' });
+          setForm(EMPTY);
         }
       });
   }, [date]);
@@ -68,7 +73,9 @@ export default function DailyLog() {
   function toggleSym(s) {
     setForm((f) => ({
       ...f,
-      symptoms: f.symptoms.includes(s) ? f.symptoms.filter((x) => x !== s) : [...f.symptoms, s],
+      symptoms: f.symptoms.includes(s)
+        ? f.symptoms.filter((x) => x !== s)
+        : [...f.symptoms, s],
     }));
   }
 
@@ -107,21 +114,18 @@ export default function DailyLog() {
         />
       </div>
 
-      {saved && <div className="toast" role="status">Today&apos;s log saved successfully.</div>}
+      {saved && <div className="toast" role="status">Log saved successfully.</div>}
       {error && <div className="toast error" role="alert">{error}</div>}
 
       <div className="g2e">
-        {/* Left column */}
+        {/* ── Left column ── */}
         <div>
           <div className="card" style={{ marginBottom: 12 }}>
             <div className="sec-lbl">How are you feeling?</div>
-            <div className="g2e">
-              <SliderField label="Mood" name="mood" value={form.mood} onChange={set} color="#0a6e5c" />
-              <SliderField label="Energy" name="energy" value={form.energy} onChange={set} color="#059669" />
-              <SliderField label="Sleep quality" name="sleep" value={form.sleep} onChange={set} color="#7c3aed" />
-              <SliderField label="Pain level" name="pain" value={form.pain} onChange={set} color="#dc2626" />
-            </div>
-            <SliderField label="Sleep hours" name="sleep" value={form.sleep} onChange={set} max={12} color="#7c3aed" />
+            <SliderField label="Mood"        name="mood"   value={form.mood}   onChange={set} color="#0a6e5c" />
+            <SliderField label="Energy"      name="energy" value={form.energy} onChange={set} color="#059669" />
+            <SliderField label="Pain level"  name="pain"   value={form.pain}   onChange={set} color="#dc2626" />
+            <SliderField label="Sleep hours" name="sleep"  value={form.sleep}  onChange={set} max={12} color="#7c3aed" />
           </div>
 
           <div className="card" style={{ marginBottom: 12 }}>
@@ -146,9 +150,7 @@ export default function DailyLog() {
                     style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.6, padding: '0 0 0 4px', color: 'inherit' }}
                     onClick={() => removeMeal(i)}
                     aria-label={`Remove ${m}`}
-                  >
-                    ×
-                  </button>
+                  >×</button>
                 </span>
               ))}
             </div>
@@ -166,7 +168,7 @@ export default function DailyLog() {
           </div>
         </div>
 
-        {/* Right column */}
+        {/* ── Right column ── */}
         <div>
           <div className="card" style={{ marginBottom: 12 }}>
             <div className="sec-lbl">Symptoms today</div>
@@ -184,26 +186,28 @@ export default function DailyLog() {
             </div>
           </div>
 
-          <div className="card" style={{ marginBottom: 12 }}>
-            <div className="sec-lbl">Cycle tracking</div>
-            <div className="lbl" style={{ marginBottom: 8 }}>Flow today</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6, marginBottom: 14 }}>
-              {FLOW_OPTIONS.map((f) => (
-                <button
-                  key={f}
-                  type="button"
-                  className={`cyc${form.flow === f ? ' on' : ''}`}
-                  onClick={() => set('flow', f)}
-                >
-                  {f}
-                </button>
-              ))}
+          {isFemale && (
+            <div className="card" style={{ marginBottom: 12 }}>
+              <div className="sec-lbl">Cycle tracking</div>
+              <div className="lbl" style={{ marginBottom: 8 }}>Flow today</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6, marginBottom: 14 }}>
+                {FLOW_OPTIONS.map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    className={`cyc${form.flow === f ? ' on' : ''}`}
+                    onClick={() => set('flow', f)}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
+              <SliderField label="Cramping" name="cramp" value={form.cramp} onChange={set} color="#e11d48" />
             </div>
-            <SliderField label="Cramping" name="cramp" value={form.cramp} onChange={set} color="#e11d48" />
-          </div>
+          )}
 
           <button className="btn-full" type="button" onClick={handleSave} disabled={loading}>
-            {loading ? 'Saving…' : "Save today's log"}
+            {loading ? 'Saving…' : 'Save log'}
           </button>
         </div>
       </div>
