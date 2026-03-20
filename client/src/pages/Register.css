@@ -6,3 +6,9 @@
 .auth-link { text-align: center; margin-top: 16px; font-size: 0.85rem; color: #6a9a8a; }
 .auth-link a { color: #0a6e5c; font-weight: 600; text-decoration: none; }
 .auth-link a:hover { text-decoration: underline; }
+
+.gender-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 4px; }
+.gender-btn { padding: 9px 0; border: 1px solid rgba(10,110,92,0.25); background: transparent; color: #6a9a8a; font-size: 13px; font-weight: 600; transition: background 0.15s, color 0.15s, border-color 0.15s; }
+.gender-btn.on { background: #0a6e5c; color: #fff; border-color: #0a6e5c; }
+.gender-btn:hover:not(.on) { background: rgba(10,110,92,0.07); }
+.gender-note { font-size: 10.5px; color: #a0b4b0; margin-bottom: 10px; }

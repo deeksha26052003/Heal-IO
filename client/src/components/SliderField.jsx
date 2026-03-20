@@ -14,7 +14,7 @@ function SliderField({ label, name, value, onChange, max, color }) {
         min={0}
         max={max}
         value={value}
-        onChange={onChange}
+        onChange={(e) => onChange(name, Number(e.target.value))}
         style={{ accentColor: color }}
       />
     </div>
