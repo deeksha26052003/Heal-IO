@@ -304,7 +304,7 @@ Create `server/.env` based on `server/.env.example`:
 
 ## Deployment
 
-Live app: **[https://heal-io.onrender.com](https://heal-io.onrender.com)**
+Live app: **https://heal-io.onrender.com**
 
 | Service | Provider |
 |---------|----------|
