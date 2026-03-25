@@ -1,19 +1,22 @@
 import { useEffect, useState } from 'react';
 import './DoctorVisits.css';
 
-const today = new Date().toISOString().split('T')[0];
+function getTodayLocalDate() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
 
 export default function DoctorVisits() {
   const [visits, setVisits] = useState([]);
   const [show, setShow] = useState(false);
-  const [form, setForm] = useState({
-    date: today,
+  const [form, setForm] = useState(() => ({
+    date: getTodayLocalDate(),
     doctor: '',
     spec: '',
     notes: '',
     rx: '',
     fu: '',
-  });
+  }));
   const [toast, setToast] = useState('');
 
   function showToast(msg) {
@@ -57,7 +60,7 @@ export default function DoctorVisits() {
     if (r.ok) {
       await loadVisits();
       setShow(false);
-      setForm({ date: today, doctor: '', spec: '', notes: '', rx: '', fu: '' });
+      setForm({ date: getTodayLocalDate(), doctor: '', spec: '', notes: '', rx: '', fu: '' });
       showToast('Visit logged');
     }
   }
