@@ -45,6 +45,9 @@ async function updateMedication(req, res) {
     const db = getDB();
     const userId = new ObjectId(req.user._id);
     const { id } = req.params;
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid medication id' });
+    }
     const updates = req.body;
     delete updates._id;
     delete updates.userId;
@@ -68,6 +71,9 @@ async function toggleActive(req, res) {
     const db = getDB();
     const userId = new ObjectId(req.user._id);
     const { id } = req.params;
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid medication id' });
+    }
     const med = await db.collection('medications').findOne({ _id: new ObjectId(id), userId });
     if (!med) return res.status(404).json({ error: 'Not found' });
 
@@ -88,6 +94,9 @@ async function toggleActive(req, res) {
 async function logAdherence(req, res) {
   const { medId, date, taken } = req.body;
   if (!medId || !date) return res.status(400).json({ error: 'medId and date required' });
+  if (!ObjectId.isValid(medId)) {
+    return res.status(400).json({ error: 'Invalid medication id' });
+  }
 
   try {
     const db = getDB();

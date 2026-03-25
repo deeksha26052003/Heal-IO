@@ -45,6 +45,9 @@ async function updateVisit(req, res) {
     const db = getDB();
     const userId = new ObjectId(req.user._id);
     const { id } = req.params;
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid visit id' });
+    }
     const updates = req.body;
     delete updates._id;
     delete updates.userId;
@@ -68,6 +71,9 @@ async function deleteVisit(req, res) {
     const db = getDB();
     const userId = new ObjectId(req.user._id);
     const { id } = req.params;
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid visit id' });
+    }
     await db.collection('doctor_visits').deleteOne({ _id: new ObjectId(id), userId });
     res.json({ message: 'Deleted' });
   } catch (err) {

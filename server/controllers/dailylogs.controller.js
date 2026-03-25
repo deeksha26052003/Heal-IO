@@ -76,6 +76,9 @@ async function deleteLog(req, res) {
     const db = getDB();
     const userId = new ObjectId(req.user._id);
     const { id } = req.params;
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid log id' });
+    }
     await db.collection('daily_logs').deleteOne({ _id: new ObjectId(id), userId });
     res.json({ message: 'Deleted' });
   } catch (err) {
