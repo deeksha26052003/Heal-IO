@@ -316,8 +316,9 @@ export default function Dashboard() {
                   <span
                     className="tag"
                     style={{ background: 'rgba(10,110,92,0.08)', color: '#0a6e5c' }}
+                    title="Mood score"
                   >
-                    m{l.mood}
+                    Mood {l.mood}
                   </span>
                 </div>
               ))

@@ -8,6 +8,7 @@ A full-stack personal health tracker built for individuals living with chronic i
 
 ## Table of Contents
 
+- [Versions](#versions)
 - [Project Objective](#project-objective)
 - [Features](#features)
 - [Tech Stack](#tech-stack)
@@ -20,6 +21,29 @@ A full-stack personal health tracker built for individuals living with chronic i
 - [Deployment](#deployment)
 - [Authors](#authors)
 - [License](#license)
+
+---
+
+## Versions
+
+| Branch | Description |
+|--------|-------------|
+| `grading` | Original submission — frozen version for project grading |
+| `main` | Updated version with usability improvements (see below) |
+
+### Usability Updates (post-submission)
+
+Based on usability study recordings, the following improvements were made to `main`:
+
+- **Registration feedback** — After creating an account, users are now redirected to the login page with a clear success message ("Account created! Please sign in.") instead of silently landing on the login form
+- **Registration validation** — Email must be a valid format (e.g. `user@domain.com`); password must be at least 8 characters and contain at least one letter and one number
+- **Custom symptoms** — Users can now add their own symptoms in the Daily Log beyond the predefined list, using a text input and + button
+- **Structured meal logging** — Meals now include a meal type (Breakfast / Lunch / Dinner / Snack), an optional time, and a food description instead of a plain text field
+- **Health Report meals** — Meals in the report are now properly comma-separated and display type, time, and food clearly
+- **Dashboard mood label** — The compact `m9` label in recent logs is now shown as `Mood 9` for clarity
+- **CSS reorganized** — All CSS files moved into `src/css/components/` and `src/css/pages/` folders
+- **Accessibility** — Slider inputs now have proper label association; gender selection buttons have `aria-pressed`; auth pages have a `<main>` landmark
+- **SEO** — Added meta description and `robots.txt`
 
 ---
 
