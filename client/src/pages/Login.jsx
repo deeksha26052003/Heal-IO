@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import WaveBackground from '../components/WaveBackground';
 import Logo from '../components/Logo';
@@ -8,9 +8,11 @@ import '../css/pages/Login.css';
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const success = location.state?.success ?? '';
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -38,6 +40,11 @@ export default function Login() {
         <h2>Welcome back</h2>
         <p className="sub">Sign in to your health journal</p>
 
+        {success && (
+          <div className="toast success" role="status" style={{ marginBottom: 14 }}>
+            {success}
+          </div>
+        )}
         {error && (
           <div className="toast error" role="alert" style={{ marginBottom: 14 }}>
             {error}

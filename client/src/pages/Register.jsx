@@ -20,7 +20,7 @@ export default function Register() {
     setLoading(true);
     try {
       await register(form.name, form.email, form.password, form.gender);
-      navigate('/login');
+      navigate('/login', { state: { success: 'Account created! Please sign in.' } });
     } catch (err) {
       setError(err.message);
     } finally {
