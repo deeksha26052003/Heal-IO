@@ -261,6 +261,10 @@ Visit [http://localhost:5173](http://localhost:5173)
 
 ---
 
+## Link to youtube demo video : 
+
+https://youtu.be/m1jSB1HtMEA
+
 ## Environment Variables
 
 Create `server/.env` based on `server/.env.example`:
@@ -300,7 +304,7 @@ Create `server/.env` based on `server/.env.example`:
 
 ## Deployment
 
-Live app: **[https://heal-io.onrender.com](https://heal-io.onrender.com)**
+Live app: **https://heal-io.onrender.com**
 
 | Service | Provider |
 |---------|----------|
@@ -309,6 +313,17 @@ Live app: **[https://heal-io.onrender.com](https://heal-io.onrender.com)**
 | Database | MongoDB Atlas |
 
 ---
+
+## Screenshots
+
+<img width="2980" height="1738" alt="image" src="https://github.com/user-attachments/assets/13c8fed7-bcdd-4f66-ab7b-108896fea4ee" />
+<img width="2980" height="1738" alt="image" src="https://github.com/user-attachments/assets/b77bd95c-8070-455c-ab44-83b6a89f557a" />
+<img width="2980" height="1738" alt="image" src="https://github.com/user-attachments/assets/399853a9-88c0-481e-8083-52abfc4c86b1" />
+<img width="2980" height="1738" alt="image" src="https://github.com/user-attachments/assets/f8fda5ff-96da-42e6-845d-829b03cf28ab" />
+
+
+
+
 
 ## Authors
 
