@@ -31,7 +31,7 @@ export default function Login() {
   return (
     <div className="auth-page">
       <WaveBackground />
-      <div className="auth-card">
+      <main className="auth-card">
         <div style={{ marginBottom: 20 }}>
           <Logo />
         </div>
@@ -81,7 +81,7 @@ export default function Login() {
         <div className="auth-link">
           Don&apos;t have an account? <Link to="/register">Create one</Link>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

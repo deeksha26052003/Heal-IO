@@ -33,7 +33,7 @@ export default function Register() {
   return (
     <div className="auth-page">
       <WaveBackground />
-      <div className="auth-card">
+      <main className="auth-card">
         <div style={{ marginBottom: 20 }}>
           <Logo />
         </div>
@@ -128,7 +128,7 @@ export default function Register() {
         <div className="auth-link">
           Already have an account? <Link to="/login">Sign in</Link>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
