@@ -44,6 +44,7 @@ export default function DailyLog() {
   const [date, setDate] = useState(today);
   const [form, setForm] = useState(EMPTY);
   const [mealInput, setMealInput] = useState('');
+  const [symInput, setSymInput] = useState('');
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -92,6 +93,18 @@ export default function DailyLog() {
       ...f,
       symptoms: f.symptoms.includes(s) ? f.symptoms.filter((x) => x !== s) : [...f.symptoms, s],
     }));
+  }
+
+  function addCustomSym() {
+    const val = symInput.trim();
+    if (val && !form.symptoms.includes(val)) {
+      setForm((f) => ({ ...f, symptoms: [...f.symptoms, val] }));
+    }
+    setSymInput('');
+  }
+
+  function removeCustomSym(s) {
+    setForm((f) => ({ ...f, symptoms: f.symptoms.filter((x) => x !== s) }));
   }
 
   async function handleSave() {
@@ -244,7 +257,7 @@ export default function DailyLog() {
         <div>
           <div className="card" style={{ marginBottom: 12 }}>
             <div className="sec-lbl">Symptoms today</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
               {SYMPTOMS.map((s) => (
                 <button
                   key={s}
@@ -255,6 +268,38 @@ export default function DailyLog() {
                   {s}
                 </button>
               ))}
+            </div>
+            {form.symptoms.filter((s) => !SYMPTOMS.includes(s)).length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+                {form.symptoms
+                  .filter((s) => !SYMPTOMS.includes(s))
+                  .map((s) => (
+                    <span key={s} className="sym on" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      {s}
+                      <button
+                        type="button"
+                        onClick={() => removeCustomSym(s)}
+                        aria-label={`Remove ${s}`}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 0 2px', color: 'inherit', opacity: 0.7 }}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+              </div>
+            )}
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input
+                className="inp"
+                style={{ margin: 0, flex: 1 }}
+                placeholder="Add your own symptom…"
+                value={symInput}
+                onChange={(e) => setSymInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && addCustomSym()}
+              />
+              <button className="btn" type="button" onClick={addCustomSym}>
+                +
+              </button>
             </div>
           </div>
 
